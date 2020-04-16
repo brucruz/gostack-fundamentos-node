@@ -1,28 +1,74 @@
 import Transaction from '../models/Transaction';
 
+interface Result {
+  transactions: Transaction[];
+  balance: Balance;
+}
+
 interface Balance {
   income: number;
   outcome: number;
   total: number;
 }
 
+interface CreateTransaction {
+  title: string;
+
+  value: number;
+
+  type: 'income' | 'outcome';
+}
+
 class TransactionsRepository {
   private transactions: Transaction[];
 
+  private balance: Balance;
+
   constructor() {
     this.transactions = [];
+    this.balance = {
+      income: 0,
+      outcome: 0,
+      total: 0,
+    };
   }
 
-  public all(): Transaction[] {
+  public all(): Result {
     // TODO
+    const result = {
+      transactions: this.transactions,
+      balance: this.getBalance(),
+    };
+    return result;
   }
 
   public getBalance(): Balance {
     // TODO
+    const reducer = (total: number, currentValue: Transaction) =>
+      total + currentValue.value;
+    const incomeTransactions: Transaction[] = this.transactions.filter(
+      transaction => transaction.type === 'income',
+    );
+    const income = incomeTransactions.reduce(reducer, 0);
+    const outcomeTransactions: Transaction[] = this.transactions.filter(
+      transaction => transaction.type === 'outcome',
+    );
+    const outcome = outcomeTransactions.reduce(reducer, 0);
+    const total = income - outcome;
+    this.balance = {
+      income,
+      outcome,
+      total,
+    };
+    return this.balance;
   }
 
-  public create(): Transaction {
+  public create({ title, type, value }: CreateTransaction): Transaction {
     // TODO
+    const transaction = new Transaction({ title, type, value });
+
+    this.transactions.push(transaction);
+    return transaction;
   }
 }
 
